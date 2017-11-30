@@ -1,3 +1,5 @@
+package subtitle.convert;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -25,12 +27,12 @@ public class IOClass {
 	 * @param fileName name of the file (or path relative to directory)
 	 * @param totalFile array of strings where each string represents a line in the file
 	 */
-	public static void writeFileTxt(String fileName, String[] totalFile){
-		FileWriter file = null;
+	public static void writeFileTxt(String saveToPath, String fileName, String[] totalFile){
+	    FileWriter file = null;
 	    PrintWriter pw = null;
 	    try
 	    {
-	        file = new FileWriter(System.getProperty("user.dir")+"/"+fileName);
+	        file = new FileWriter(saveToPath +"/"+fileName);
 	        pw = new PrintWriter(file);
 	
 	        for (int i = 0; i < totalFile.length; i++)
@@ -63,10 +65,10 @@ public class IOClass {
 	 * @param fileName name of the file (or path relative to directory)
 	 * @param s array of strings where each string represents a line in the file
 	 */
-	public static String[] readfileTxt(String fileName){
+	public static String[] readfileTxt(String saveToPath, String fileName){
 		
 		String [] s = new String [0];
-		String direccion = System.getProperty("user.dir")+"/"+ fileName;
+		String direccion = saveToPath +"/"+ fileName;
 		
 		// Try to load the file (archive)
 		File archive;

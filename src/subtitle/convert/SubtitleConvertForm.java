@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.filechooser.FileFilter;
@@ -23,8 +24,12 @@ import subtitleFile.FormatVTT;
  * @author nguye
  */
 public class SubtitleConvertForm extends javax.swing.JFrame {
-    private File lastFile = new File("");
-    private File saveTo = new File("");
+    private File openFolder = new File("");
+    private File saveFolder = new File("");
+    private String inputFormat = "srt";
+    private String outputFormat = "xml";
+    private boolean convertAll = false;
+    private boolean keepFolderStruct = true;
     private ArrayList<String> approveFilesType = new ArrayList<String>();
     /**
      * Creates new form SubtitleConvertForm
@@ -39,6 +44,11 @@ public class SubtitleConvertForm extends javax.swing.JFrame {
         this.setLocationRelativeTo(null);
         customUI();
         approveFilesType.add("vtt");
+        approveFilesType.add("srt");
+        approveFilesType.add("xml");
+        approveFilesType.add("vcc");
+        approveFilesType.add("stl");
+        approveFilesType.add("ass");
     }
 
     /**
@@ -54,28 +64,36 @@ public class SubtitleConvertForm extends javax.swing.JFrame {
         pnNormal = new javax.swing.JPanel();
         txtOpen = new javax.swing.JTextField();
         btnOpen = new javax.swing.JButton();
-        jCheckBox1 = new javax.swing.JCheckBox();
+        chkConvertAll = new javax.swing.JCheckBox();
         btnStart = new javax.swing.JButton();
-        jComboBox1 = new javax.swing.JComboBox<>();
+        cbFormatOut = new javax.swing.JComboBox<>();
         jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        cbFormatIn = new javax.swing.JComboBox<>();
         pnOptional = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         txtSave = new javax.swing.JTextField();
         btnSave = new javax.swing.JButton();
-        jCheckBox2 = new javax.swing.JCheckBox();
+        chkKeepFolderStruct = new javax.swing.JCheckBox();
         jScrollPane1 = new javax.swing.JScrollPane();
         txtResult = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("EL Convert");
+        setTitle("EL Subtitle Converter");
         setBackground(new java.awt.Color(250, 250, 250));
 
         jLabel1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(0, 204, 204));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("EL Convert");
+        jLabel1.setText("EL Subtitle Converter");
 
         pnNormal.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 204, 204)));
+
+        txtOpen.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                txtOpenKeyTyped(evt);
+            }
+        });
 
         btnOpen.setText("Open");
         btnOpen.addActionListener(new java.awt.event.ActionListener() {
@@ -84,7 +102,12 @@ public class SubtitleConvertForm extends javax.swing.JFrame {
             }
         });
 
-        jCheckBox1.setText("Convert all files and sub folders");
+        chkConvertAll.setText("Convert all files and sub folders");
+        chkConvertAll.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                chkConvertAllItemStateChanged(evt);
+            }
+        });
 
         btnStart.setText("Start");
         btnStart.addActionListener(new java.awt.event.ActionListener() {
@@ -93,9 +116,23 @@ public class SubtitleConvertForm extends javax.swing.JFrame {
             }
         });
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "srt" }));
+        cbFormatOut.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "xml", "stl", "scc", "srt", "ass", "vtt" }));
+        cbFormatOut.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                cbFormatOutItemStateChanged(evt);
+            }
+        });
 
-        jLabel3.setText("Output type");
+        jLabel3.setText("Format");
+
+        jLabel4.setText("Input Format");
+
+        cbFormatIn.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "srt", "stl", "scc", "xml", "ass", "vtt" }));
+        cbFormatIn.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                cbFormatInItemStateChanged(evt);
+            }
+        });
 
         javax.swing.GroupLayout pnNormalLayout = new javax.swing.GroupLayout(pnNormal);
         pnNormal.setLayout(pnNormalLayout);
@@ -105,12 +142,16 @@ public class SubtitleConvertForm extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(pnNormalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(pnNormalLayout.createSequentialGroup()
+                        .addComponent(jLabel4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(cbFormatIn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jCheckBox1))
-                    .addComponent(txtOpen, javax.swing.GroupLayout.DEFAULT_SIZE, 428, Short.MAX_VALUE))
+                        .addComponent(cbFormatOut, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 41, Short.MAX_VALUE)
+                        .addComponent(chkConvertAll))
+                    .addComponent(txtOpen))
                 .addGap(18, 18, 18)
                 .addGroup(pnNormalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btnOpen)
@@ -128,9 +169,11 @@ public class SubtitleConvertForm extends javax.swing.JFrame {
                 .addGroup(pnNormalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btnStart, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(pnNormalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jCheckBox1)
-                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel3)))
+                        .addComponent(chkConvertAll)
+                        .addComponent(cbFormatOut, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel3)
+                        .addComponent(jLabel4)
+                        .addComponent(cbFormatIn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -141,6 +184,12 @@ public class SubtitleConvertForm extends javax.swing.JFrame {
         jLabel2.setForeground(new java.awt.Color(0, 204, 204));
         jLabel2.setText("Optional");
 
+        txtSave.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                txtSaveKeyTyped(evt);
+            }
+        });
+
         btnSave.setText("Save to");
         btnSave.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -148,7 +197,13 @@ public class SubtitleConvertForm extends javax.swing.JFrame {
             }
         });
 
-        jCheckBox2.setText("Keep folders struture");
+        chkKeepFolderStruct.setSelected(true);
+        chkKeepFolderStruct.setText("Keep folders structure");
+        chkKeepFolderStruct.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                chkKeepFolderStructItemStateChanged(evt);
+            }
+        });
 
         javax.swing.GroupLayout pnOptionalLayout = new javax.swing.GroupLayout(pnOptional);
         pnOptional.setLayout(pnOptionalLayout);
@@ -163,7 +218,7 @@ public class SubtitleConvertForm extends javax.swing.JFrame {
                         .addComponent(txtSave))
                     .addGroup(pnOptionalLayout.createSequentialGroup()
                         .addGroup(pnOptionalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jCheckBox2)
+                            .addComponent(chkKeepFolderStruct)
                             .addComponent(jLabel2))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
@@ -178,7 +233,7 @@ public class SubtitleConvertForm extends javax.swing.JFrame {
                     .addComponent(txtSave, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnSave))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jCheckBox2)
+                .addComponent(chkKeepFolderStruct)
                 .addGap(22, 22, 22))
         );
 
@@ -192,9 +247,10 @@ public class SubtitleConvertForm extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(164, 164, 164)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 235, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap(164, Short.MAX_VALUE)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 235, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(164, 164, 164))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(29, 29, 29)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -222,7 +278,7 @@ public class SubtitleConvertForm extends javax.swing.JFrame {
 
     private void btnOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOpenActionPerformed
         // TODO add your handling code here:
-        JFileChooser fileChooser = new JFileChooser(lastFile);
+        JFileChooser fileChooser = new JFileChooser(openFolder);
         fileChooser.setDialogTitle("Choose a file or a folder");
         fileChooser.setFileFilter(new FileFilter() {
             @Override
@@ -241,34 +297,106 @@ public class SubtitleConvertForm extends javax.swing.JFrame {
         fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         int choose = fileChooser.showOpenDialog(this);
         if(choose == JFileChooser.APPROVE_OPTION){
-            lastFile = fileChooser.getSelectedFile();
-            txtOpen.setText(lastFile.getAbsolutePath());
+            openFolder = fileChooser.getSelectedFile();
+            txtOpen.setText(openFolder.getAbsolutePath());
+            cbFormatIn.setSelectedItem(ConvertPro.getFileExt(openFolder));
         }
     }//GEN-LAST:event_btnOpenActionPerformed
 
     private void btnStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStartActionPerformed
-        StringBuilder log = new StringBuilder();
-        txtResult.setText("");
-        if(saveTo.exists()){
-            saveTo = new File(saveTo.getAbsolutePath() + "\\" + lastFile.getName().replace(":\\", "") + " [Subtitle]");
-            saveTo.mkdir();
-            FormatVTT.toSrtAlls(lastFile, saveTo, txtResult);
-        } else {
-            FormatVTT.toSrtAlls(lastFile, txtResult);
+        if(checkUserInput()){
+            ConvertPro.log.delete(0, ConvertPro.log.length());
+            if(convertAll){
+                if(openFolder.isFile()){
+                    openFolder = openFolder.getParentFile();
+                }
+                if(saveFolder.exists()){
+                    saveFolder = new File(saveFolder.getAbsolutePath() + "\\" + openFolder.getName().replace(":\\", "") + " [Subtitle]");
+                    saveFolder.mkdir();
+                    ConvertPro.convertAlls(openFolder, saveFolder, inputFormat, outputFormat);
+                } else {
+                    ConvertPro.convertAlls(openFolder, inputFormat, outputFormat);
+                }
+            } else {
+                if(!openFolder.isFile()){
+                    JOptionPane.showMessageDialog(this, "You have to choose a file in convert single file mode", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                if(saveFolder.exists()){
+                    ConvertPro.convert(saveFolder.getAbsolutePath(), openFolder, outputFormat);
+                } else {
+                    ConvertPro.convert(openFolder.getParent(), openFolder, outputFormat);
+                }
+            } 
+            
+            txtResult.setText(ConvertPro.log.toString() + "\nDone!");
         }
+        
     }//GEN-LAST:event_btnStartActionPerformed
 
+    private boolean checkUserInput(){
+        if(outputFormat.equalsIgnoreCase("vtt")){
+            JOptionPane.showMessageDialog(this, "Updating: Not support yet VTT as a output format", "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        if(inputFormat.equalsIgnoreCase(outputFormat)){
+            JOptionPane.showMessageDialog(this, "Please choose different input, output format", "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        if(!openFolder.exists()){
+            JOptionPane.showMessageDialog(this, "Choose wrong folder to open", "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        if(!saveFolder.exists() && !txtSave.getText().trim().equals("") || saveFolder.isFile()){
+            JOptionPane.showMessageDialog(this, "Choose wrong folder to save", "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        return true;
+    }
+    
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
         // TODO add your handling code here:
-        JFileChooser fileChooser = new JFileChooser(lastFile);
+        JFileChooser fileChooser = new JFileChooser(saveFolder);
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         fileChooser.setDialogTitle("Choose a directory");
         int choose = fileChooser.showSaveDialog(this);
         if(choose == JFileChooser.APPROVE_OPTION){
-            saveTo = fileChooser.getSelectedFile();
-            txtSave.setText(saveTo.getAbsolutePath());
+            saveFolder = fileChooser.getSelectedFile();
+            txtSave.setText(saveFolder.getAbsolutePath());
         }
     }//GEN-LAST:event_btnSaveActionPerformed
+
+    private void cbFormatInItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cbFormatInItemStateChanged
+        // TODO add your handling code here:
+        inputFormat = cbFormatIn.getSelectedItem().toString();
+    }//GEN-LAST:event_cbFormatInItemStateChanged
+
+    private void cbFormatOutItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cbFormatOutItemStateChanged
+        // TODO add your handling code here:
+        outputFormat = cbFormatOut.getSelectedItem().toString();
+    }//GEN-LAST:event_cbFormatOutItemStateChanged
+
+    private void chkConvertAllItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkConvertAllItemStateChanged
+        // TODO add your handling code here:
+        convertAll = !convertAll;
+    }//GEN-LAST:event_chkConvertAllItemStateChanged
+
+    private void chkKeepFolderStructItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chkKeepFolderStructItemStateChanged
+        // TODO add your handling code here:
+        keepFolderStruct = !keepFolderStruct;
+    }//GEN-LAST:event_chkKeepFolderStructItemStateChanged
+
+    private void txtOpenKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtOpenKeyTyped
+        // TODO add your handling code here:
+        openFolder = new File(txtOpen.getText());
+        cbFormatIn.setSelectedItem(ConvertPro.getFileExt(openFolder));
+    }//GEN-LAST:event_txtOpenKeyTyped
+
+    private void txtSaveKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtSaveKeyTyped
+        // TODO add your handling code here:
+        saveFolder = new File(txtSave.getText());
+    }//GEN-LAST:event_txtSaveKeyTyped
 
     /**
      * @param args the command line arguments
@@ -309,12 +437,14 @@ public class SubtitleConvertForm extends javax.swing.JFrame {
     private javax.swing.JButton btnOpen;
     private javax.swing.JButton btnSave;
     private javax.swing.JButton btnStart;
-    private javax.swing.JCheckBox jCheckBox1;
-    private javax.swing.JCheckBox jCheckBox2;
-    private javax.swing.JComboBox<String> jComboBox1;
+    private javax.swing.JComboBox<String> cbFormatIn;
+    private javax.swing.JComboBox<String> cbFormatOut;
+    private javax.swing.JCheckBox chkConvertAll;
+    private javax.swing.JCheckBox chkKeepFolderStruct;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JPanel pnNormal;
     private javax.swing.JPanel pnOptional;
