@@ -248,8 +248,8 @@ public class SubtitleConvertForm extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addContainerGap(164, Short.MAX_VALUE)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 235, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(164, 164, 164)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 235, Short.MAX_VALUE)
                         .addGap(164, 164, 164))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(29, 29, 29)
@@ -299,7 +299,11 @@ public class SubtitleConvertForm extends javax.swing.JFrame {
         if(choose == JFileChooser.APPROVE_OPTION){
             openFolder = fileChooser.getSelectedFile();
             txtOpen.setText(openFolder.getAbsolutePath());
+            if(openFolder.isFile()){
             cbFormatIn.setSelectedItem(ConvertPro.getFileExt(openFolder));
+            } else {
+                chkConvertAll.setSelected(true);
+            }
         }
     }//GEN-LAST:event_btnOpenActionPerformed
 
@@ -390,7 +394,11 @@ public class SubtitleConvertForm extends javax.swing.JFrame {
     private void txtOpenKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtOpenKeyTyped
         // TODO add your handling code here:
         openFolder = new File(txtOpen.getText());
-        cbFormatIn.setSelectedItem(ConvertPro.getFileExt(openFolder));
+        if(openFolder.isFile()){
+            cbFormatIn.setSelectedItem(ConvertPro.getFileExt(openFolder));
+        } else {
+            chkConvertAll.setSelected(true);
+        }
     }//GEN-LAST:event_txtOpenKeyTyped
 
     private void txtSaveKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtSaveKeyTyped
